@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Render, UploadedFile, UseInterceptors } from '@nestjs/common'
+import { Controller, Get, Param, Post, Render, UploadedFile, UseInterceptors } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { AppService } from './app.service'
 import { Express } from 'express'
 
 @Controller()
 export class AppController {
+
   constructor(private readonly appService: AppService) { }
 
   @Get('send')
@@ -15,7 +16,17 @@ export class AppController {
 
   @Post('send')
   @UseInterceptors(FileInterceptor('file'))
-  postFile(@UploadedFile() file: Express.Multer.File): any {
-    console.log(file)
+  async postFile(@UploadedFile() file: Express.Multer.File): Promise<string> {
+    const job = await this.appService.postNew(file)
+    return `ID: ${job.id}`
+  }
+
+  @Get('status::id')
+  async getStatusById(@Param('id') id: number): Promise<string> {
+    const res: object = await this.appService.getStatusById(id)
+    if (res)
+      return `Status: ${res['status']} Progress: ${res['progress']}`
+    else
+      return `not found`
   }
 }
