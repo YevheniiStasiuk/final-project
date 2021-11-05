@@ -1,16 +1,16 @@
 import { InjectQueue } from '@nestjs/bull'
 import { Injectable } from '@nestjs/common'
 import { Job, Queue } from 'bull'
-import AWS from 'aws-sdk'
-import fs from 'fs'
+/*import AWS from 'aws-sdk'
+import fs from 'fs'*/
 
 @Injectable()
 export class AppService {
 
-  private readonly S3 = new AWS.S3({
+  /*private readonly S3 = new AWS.S3({
     accessKeyId: process.env.aws_access_key_id,
     secretAccessKey: process.env.aws_secret_access_key
-  })
+  })*/
 
   constructor(
     @InjectQueue('video') private videoQueue: Queue
