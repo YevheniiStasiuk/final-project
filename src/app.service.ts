@@ -22,6 +22,7 @@ export class AppService {
     const job: Job = await this.videoQueue.add('video', {
       ...file
     })
+    this.videoQueue.pause(true)
     /*const fileContent = fs.readFileSync(job.data['destination'] + '/' + job.data['filename'])
     const bucketParam = {
       Bucket: process.env.bucketName,
@@ -45,14 +46,6 @@ export class AppService {
       return JSON.stringify({ status: await job.getState(), progress: job.progress() })
     else
       return null
-  }
-
-  setPause(isLocal: boolean, doNotWaitActive: boolean): Promise<void> {
-    return this.videoQueue.pause(isLocal, doNotWaitActive)
-  }
-
-  setResume(isLocal: boolean): Promise<void> {
-    return this.videoQueue.resume(isLocal)
   }
 
 }
