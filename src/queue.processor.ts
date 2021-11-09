@@ -42,14 +42,17 @@ export class videoQueue {
     @Process('video')
     async video(job: Job): Promise<void> {
         const command: Ffmpeg.FfmpegCommand = Ffmpeg(job.data['destination'] + '/' + job.data['filename'])
+
         await new Promise((resolve, reject) => {
-            command.size('640x480')
+            command.addOutput('./videos/done/' + job.data['filename'] + '.avi')
+                .size('640x480')
                 .format('avi')
                 .videoBitrate('1024k')
                 .on('start', async (commandLine) => {
                     console.log('Process has been started')
                 })
                 .on('progress', (progress) => {
+                    console.log(progress)
                     //console.log('progress ' + progress.percent + '%')
                     job.progress(progress.percent)
                 })
@@ -63,7 +66,8 @@ export class videoQueue {
                     console.log('an error happened: ' + err.message)
                     reject(err)
                 })
-                .save('./videos/done/' + job.data['filename'] + '.avi')
+                .run()
+                //.save('./videos/done/' + job.data['filename'] + '.avi')
         })
     }
 
