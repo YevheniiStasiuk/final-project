@@ -2,7 +2,6 @@ import { Controller, Get, Param, Post, Render, UploadedFile, UseInterceptors } f
 import { FileInterceptor } from '@nestjs/platform-express'
 import { AppService } from './app.service'
 import { Express } from 'express'
-import { Job } from 'bull'
 
 @Controller()
 export class AppController {

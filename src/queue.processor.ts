@@ -50,8 +50,8 @@ export class videoQueue {
                     console.log('Process has been started')
                 })
                 .on('progress', (progress) => {
-                    /*console.log('Processing: ' + progress.percent + '% done')
-                    job.progress(progress.percent)*/
+                    //console.log('progress ' + progress.percent + '%')
+                    job.progress(progress.percent)
                 })
                 .on('end', async (stdout, stderr) => {
                     console.log('Transcoding succeeded !')
@@ -60,7 +60,7 @@ export class videoQueue {
                     resolve(job)
                 })
                 .on('error', (err) => {
-                    console.log('an error happened: ' + err.message);
+                    console.log('an error happened: ' + err.message)
                     reject(err)
                 })
                 .save('./videos/done/' + job.data['filename'] + '.avi')
