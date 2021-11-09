@@ -2,11 +2,11 @@ import { OnQueueActive, OnQueueCompleted, OnQueueError, OnQueueFailed, OnQueuePr
 import { Job } from 'bull'
 import ffmped from '@ffmpeg-installer/ffmpeg'
 import Ffmpeg from 'fluent-ffmpeg'
+import { AppService } from './app.service'
 
 @Processor('video')
-export class Queue {
-
-    constructor() {
+export class videoQueue {
+    constructor(private readonly appService: AppService) {
         Ffmpeg.setFfmpegPath(ffmped.path)
     }
 
@@ -41,15 +41,30 @@ export class Queue {
     }
 
     @Process('video')
-    video(job: Job) {
+    async video(job: Job): Promise<void> {
         const command: Ffmpeg.FfmpegCommand = Ffmpeg(job.data['destination'] + '/' + job.data['filename'])
-            .size('640x480')
+        command.size('640x480')
             .format('avi')
-            .save('./videos' + '/done/' + job.data['filename'] + '.avi')
-        /*command.on('progress', (something) => {
-            console.log(something)
-        })*/
-        return command
+            .videoBitrate('1024k')
+            .on('start', async (commandLine) => {
+                console.log('Process has been started')
+            })
+            .on('progress', (progress) => {
+                console.log(progress)
+                /*console.log('Processing: ' + progress.percent + '% done')
+                job.progress(progress.percent)*/
+            })
+            .on('end', async (stdout, stderr) => {
+                console.log('Transcoding succeeded !')
+                console.log('resume:', await this.appService.setResume(true))
+                console.log('completed:', await job.moveToCompleted())
+                job.progress(100)
+            })
+            .on('error', (err) => {
+                console.log('an error happened: ' + err.message);
+            })
+            .save('./videos/done/' + job.data['filename'] + '.avi')
+        await this.appService.setPause(true, false)
     }
 
 }

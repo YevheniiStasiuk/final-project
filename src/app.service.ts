@@ -18,7 +18,7 @@ export class AppService {
 
   }
 
-  async postNew(file: Express.Multer.File): Promise<Job> {
+  async postNew(file: Express.Multer.File): Promise<string> {
     const job: Job = await this.videoQueue.add('video', {
       ...file
     })
@@ -34,33 +34,25 @@ export class AppService {
     this.S3.upload(bucketParam, (err, data) => {
       err ? console.log("Error", err) : console.log("Upload Success!", data.Location);
     })*/
-    return job
+    return JSON.stringify({ id: job.id })
   }
 
-  async getStatusById(id: number): Promise<object> {
+  async getStatusById(id: number): Promise<string> {
     const job = await this.videoQueue.getJob(id).catch((err) => {
       console.error(err)
     })
     if (job)
-      return { status: await this.getStatus(job), progress: job.progress() }
+      return JSON.stringify({ status: await job.getState(), progress: job.progress() })
     else
       return null
   }
 
-  async getStatus(job: Job) {
-    if (await job.isActive())
-      return 'active'
-    else if (await job.isCompleted())
-      return 'completed'
-    else if (await job.isDelayed())
-      return 'delayed'
-    else if (await job.isFailed())
-      return 'failed'
-    else if (await job.isPaused())
-      return 'paused'
-    else if (await job.isStuck())
-      return 'stuck'
-    else if (await job.isWaiting())
-      return 'waiting'
+  setPause(isLocal: boolean, doNotWaitActive: boolean): Promise<void> {
+    return this.videoQueue.pause(isLocal, doNotWaitActive)
   }
+
+  setResume(isLocal: boolean): Promise<void> {
+    return this.videoQueue.resume(isLocal)
+  }
+
 }

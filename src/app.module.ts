@@ -5,7 +5,8 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { BullModule } from '@nestjs/bull';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { Queue } from './queue.processor';
+import { videoQueue } from './queue.processor';
+import Path from 'path'
 
 @Module({
   imports: [
@@ -15,22 +16,26 @@ import { Queue } from './queue.processor';
     }),
     MulterModule.register({
       dest: './videos/raw',
-      /*fileFilter(
-        file: {
-          mimetype: 'video'
+      fileFilter: function (req, file, callback) {
+        const ext = Path.extname(file.originalname)
+        if (ext !== '.avi' && ext !== '.mp4') {
+          return callback(new Error('Only videos are allowed'), false)
         }
-      )*/
+        callback(null, true)
+      },
     }),
     ClientsModule.register([{ name: 'MATH_SERVICE', transport: Transport.REDIS, options: { url: 'redis://localhost:6379', } }]),
-    BullModule.forRoot({ redis: { 
-      host: 'localhost',
-      port: 6379
-    }, defaultJobOptions: {
-      lifo: true
-    } }),
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 6379
+      }, defaultJobOptions: {
+        lifo: true
+      }
+    }),
     BullModule.registerQueue({ name: 'video' })
   ],
   controllers: [AppController],
-  providers: [AppService, Queue],
+  providers: [AppService, videoQueue],
 })
 export class AppModule { }
