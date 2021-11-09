@@ -1,12 +1,14 @@
 import { OnQueueActive, OnQueueCompleted, OnQueueError, OnQueueFailed, OnQueueProgress, Process, Processor } from '@nestjs/bull'
 import { Job } from 'bull'
 import ffmped from '@ffmpeg-installer/ffmpeg'
+import ffprobe from '@ffprobe-installer/ffprobe'
 import Ffmpeg from 'fluent-ffmpeg'
 
 @Processor('video')
 export class videoQueue {
     constructor() {
         Ffmpeg.setFfmpegPath(ffmped.path)
+        Ffmpeg.setFfprobePath(ffprobe.path)
     }
 
     @OnQueueActive()
@@ -42,19 +44,15 @@ export class videoQueue {
     @Process('video')
     async video(job: Job): Promise<void> {
         const command: Ffmpeg.FfmpegCommand = Ffmpeg(job.data['destination'] + '/' + job.data['filename'])
-
         await new Promise((resolve, reject) => {
-            command.addOutput('./videos/done/' + job.data['filename'] + '.avi')
-                .size('640x480')
+            command.size('640x480')
                 .format('avi')
                 .videoBitrate('1024k')
                 .on('start', async (commandLine) => {
                     console.log('Process has been started')
                 })
                 .on('progress', (progress) => {
-                    console.log(progress)
-                    //console.log('progress ' + progress.percent + '%')
-                    job.progress(progress.percent)
+                    job.progress(progress.percent.toFixed(2))
                 })
                 .on('end', async (stdout, stderr) => {
                     console.log('Transcoding succeeded !')
@@ -66,8 +64,7 @@ export class videoQueue {
                     console.log('an error happened: ' + err.message)
                     reject(err)
                 })
-                .run()
-                //.save('./videos/done/' + job.data['filename'] + '.avi')
+                .save('./videos/done/' + job.data['filename'] + '.avi')
         })
     }
 
