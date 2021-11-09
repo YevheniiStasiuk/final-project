@@ -42,7 +42,7 @@ export class videoQueue {
     @Process('video')
     async video(job: Job): Promise<void> {
         const command: Ffmpeg.FfmpegCommand = Ffmpeg(job.data['destination'] + '/' + job.data['filename'])
-        await new Promise((resolve) => {
+        await new Promise((resolve, reject) => {
             command.size('640x480')
                 .format('avi')
                 .videoBitrate('1024k')
@@ -57,10 +57,11 @@ export class videoQueue {
                     console.log('Transcoding succeeded !')
                     job.queue.resume(true)
                     await job.progress(100)
-                    resolve(true)
+                    resolve(job)
                 })
                 .on('error', (err) => {
                     console.log('an error happened: ' + err.message);
+                    reject(err)
                 })
                 .save('./videos/done/' + job.data['filename'] + '.avi')
         })
