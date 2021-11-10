@@ -22,7 +22,6 @@ export class AppService {
     const job: Job = await this.videoQueue.add('video', {
       ...file
     })
-    this.videoQueue.pause(true)
     /*const fileContent = fs.readFileSync(job.data['destination'] + '/' + job.data['filename'])
     const bucketParam = {
       Bucket: process.env.bucketName,

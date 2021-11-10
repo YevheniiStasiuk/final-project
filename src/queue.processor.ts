@@ -56,7 +56,6 @@ export class videoQueue {
                 })
                 .on('end', async (stdout, stderr) => {
                     console.log('Transcoding succeeded !')
-                    job.queue.resume(true)
                     await job.progress(100)
                     resolve(job)
                 })
